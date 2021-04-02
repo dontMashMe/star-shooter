@@ -68,7 +68,7 @@ class Bullet:
 def handle_bullets(bullets: list):
     for bullet in bullets:
         bullet.rectangle.y -= BULLET_VEL
-        if bullet.rectangle.y > HEIGHT:  # if the bullet reaches the end of the screen, remove it from the list
+        if bullet.rectangle.y < 0:  # if the bullet reaches the end of the screen, remove it from the list
             bullets.remove(bullet)
 
 
@@ -97,7 +97,6 @@ def main():
                 if event.key == pygame.K_SPACE:
                     bullet_object = Bullet(bullet_asset, spaceship_object)
                     bullets.append(bullet_object)
-                    print(bullets)
 
         keys_pressed = pygame.key.get_pressed()
         spaceship_object.handle_movement(keys_pressed)
