@@ -1,79 +1,21 @@
-import os
-
 import pygame
-
-# CONSTANTS
-WIDTH, HEIGHT = 900, 500
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("pew pew")
-WHITE = (255, 255, 255)
-FPS = 60
-VEL = 5  # velocity
-BULLET_VEL = 10
-background = pygame.image.load(os.path.join('Assets', 'space.png'))
-bullet_asset = pygame.image.load(os.path.join('Assets', 'bullet.png'))
+import SpaceShip as SpaceShip
+import Constants as Constants
+import Bullet as Bullet
 
 
-class SpaceShip:
-    def __init__(self, asset, ship_height: int, ship_width: int, starting_pos_x: float, starting_pos_y: float,
-                 rotation: int):
-        self.asset = asset
-        self.ship_height = ship_height
-        self.ship_width = ship_width
-        self.resize_asset(ship_height, ship_width)
-        self.rectangle = pygame.Rect(starting_pos_x, starting_pos_y, ship_width, ship_height)
-        self.rotate_ship(rotation)
-
-    def draw_ship(self):
-        WIN.blit(self.asset, (self.rectangle.x, self.rectangle.y))
-
-    def resize_asset(self, width: int, height: int):
-        self.asset = pygame.transform.scale(self.asset, (width, height))
-
-    def rotate_ship(self, angle: int):
-        self.asset = pygame.transform.rotate(self.asset, angle)
-
-    def handle_movement(self, keys_pressed):
-        if keys_pressed[pygame.K_a] and self.rectangle.x - VEL > 0:  # LEFT
-            self.rectangle.x -= VEL
-
-        if keys_pressed[pygame.K_d] and self.rectangle.x + VEL + self.ship_height < WIDTH:  # RIGHT
-            self.rectangle.x += VEL
-
-        if keys_pressed[pygame.K_w] and self.rectangle.y - VEL > 0:  # UP
-            self.rectangle.y -= VEL
-
-        if keys_pressed[pygame.K_s] and self.rectangle.y + VEL + self.ship_height < HEIGHT:  # DOWN
-            self.rectangle.y += VEL
-
-
-class Bullet:
-    def __init__(self, asset, spaceship: SpaceShip):
-        self.asset = asset
-        self.resize_asset(50, 50)
-        self.rotate_bullet()
-        self.rectangle = pygame.Rect(spaceship.rectangle.x,
-                                     spaceship.rectangle.y - 20, 10, 5)
-
-    def resize_asset(self, width: int, height: int):
-        self.asset = pygame.transform.scale(self.asset, (width, height))
-
-    def draw_bullet(self):
-        WIN.blit(self.asset, (self.rectangle.x, self.rectangle.y))
-
-    def rotate_bullet(self):
-        self.asset = pygame.transform.rotate(self.asset, 90)
-
-
+# handling of bullets
 def handle_bullets(bullets: list):
     for bullet in bullets:
-        bullet.rectangle.y -= BULLET_VEL
+        bullet.rectangle.y -= Constants.BULLET_VEL
         if bullet.rectangle.y < 0:  # if the bullet reaches the end of the screen, remove it from the list
             bullets.remove(bullet)
 
 
-def draw_window(spaceship_obj: SpaceShip, bullets: list):
-    WIN.blit(background, (0, 0))
+# drawing
+def draw_window(spaceship_obj: SpaceShip.SpaceShip, bullets: list, bg_y: int, bg_y2: int):
+    Constants.WIN.blit(Constants.background, (0, bg_y))
+    Constants.WIN.blit(Constants.background, (0, bg_y2))
     spaceship_obj.draw_ship()
     for bullet in bullets:
         bullet.draw_bullet()
@@ -82,26 +24,43 @@ def draw_window(spaceship_obj: SpaceShip, bullets: list):
 
 # driver code
 def main():
-    spaceship_object = SpaceShip(asset=pygame.image.load(os.path.join('Assets', 'spaceship_red.png')), ship_height=50,
-                                 ship_width=40, starting_pos_x=WIDTH / 2 - 50,
-                                 starting_pos_y=HEIGHT / 2 - 40, rotation=180)
+    spaceship_object = SpaceShip.SpaceShip(
+        asset=pygame.image.load(Constants.os.path.join('Assets', 'spaceship_red.png')),
+        ship_height=50,
+        ship_width=40, starting_pos_x=Constants.WIDTH / 2 - 50,
+        starting_pos_y=Constants.HEIGHT / 2 - 40, rotation=180)
+
+    bg_y = 0
+    bg_y2 = Constants.background.get_height() * -1
+
     clock = pygame.time.Clock()
     run = True
     bullets = []
     while run:
-        clock.tick(FPS)
+        clock.tick(Constants.FPS)
+
+        # scrolling background logic
+        bg_y += 1.4
+        bg_y2 += 1.4
+        if bg_y > Constants.background.get_height():
+            bg_y = Constants.background.get_height() * -1
+
+        if bg_y2 > Constants.background.get_height():
+            bg_y2 = Constants.background.get_height() * -1
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.KEYDOWN:  # shooting
                 if event.key == pygame.K_SPACE:
-                    bullet_object = Bullet(bullet_asset, spaceship_object)
+                    bullet_object = Bullet.Bullet(Constants.bullet_asset, spaceship_object)
+                    bullet_object.shoot_sound()
                     bullets.append(bullet_object)
 
         keys_pressed = pygame.key.get_pressed()
         spaceship_object.handle_movement(keys_pressed)
         handle_bullets(bullets)
-        draw_window(spaceship_object, bullets)
+        draw_window(spaceship_object, bullets, bg_y, bg_y2)
 
     pygame.quit()
 
