@@ -33,3 +33,23 @@ class SpaceShip:
 
         if keys_pressed[pygame.K_s] and self.rectangle.y + Constants.VEL + self.ship_height < Constants.HEIGHT:  # DOWN
             self.rectangle.y += Constants.VEL
+
+
+class Alien(SpaceShip):
+    def __init__(self, asset, ship_height: int, ship_width: int, starting_pos_x: float, starting_pos_y: float,
+                 rotation: int):
+        super().__init__(asset, ship_height, ship_width, starting_pos_x, starting_pos_y, rotation)
+        self.direction = 1  # indicates the direction of movement on the screen; 1 - left, -1 right
+        self.can_shoot = True
+
+    def move(self):
+        if self.direction == 1:
+            self.rectangle.x -= Constants.ALIEN_VEL
+        elif self.direction == -1:
+            self.rectangle.x += Constants.ALIEN_VEL
+
+    def explode(self):
+        self.asset = Constants.explosion
+        self.resize_asset(self.ship_height, self.ship_width)
+        self.direction = 0
+        self.draw_ship()
