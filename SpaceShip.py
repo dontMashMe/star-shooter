@@ -1,5 +1,5 @@
 import pygame
-import Constants as Constants
+import Constants
 
 
 class SpaceShip:
@@ -11,6 +11,7 @@ class SpaceShip:
         self.resize_asset(ship_height, ship_width)
         self.rectangle = pygame.Rect(starting_pos_x, starting_pos_y, ship_width, ship_height)
         self.rotate_ship(rotation)
+        self.health = 3
 
     def draw_ship(self):
         Constants.WIN.blit(self.asset, (self.rectangle.x, self.rectangle.y))
@@ -39,7 +40,7 @@ class Alien(SpaceShip):
     def __init__(self, asset, ship_height: int, ship_width: int, starting_pos_x: float, starting_pos_y: float,
                  rotation: int):
         super().__init__(asset, ship_height, ship_width, starting_pos_x, starting_pos_y, rotation)
-        self.direction = 1  # indicates the direction of movement on the screen; 1 - left, -1 right
+        self.direction = 1  # indicates the direction of movement on the screen; 1 - left, -1 right, 0 stay still
         self.can_shoot = True
 
     def move(self):
