@@ -41,7 +41,7 @@ class Alien(SpaceShip):
                  rotation: int):
         super().__init__(asset, ship_height, ship_width, starting_pos_x, starting_pos_y, rotation)
         self.direction = 1  # indicates the direction of movement on the screen; 1 - left, -1 right, 0 stay still
-        self.can_shoot = True
+        self.destroyed = False
 
     def move(self):
         if self.direction == 1:

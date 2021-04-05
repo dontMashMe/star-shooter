@@ -19,9 +19,6 @@ class State:
     def update(self, *args, **kwargs) -> None:
         pass
 
-    def process_input(self, *args, **kwargs) -> None:
-        pass
-
     def init(self, *args, **kwargs) -> None:
         pass
 
@@ -35,7 +32,9 @@ class State:
 class InGameState(State):
 
     def __init__(self, game_engine):
+        self.score = 0
         self.game_engine = game_engine
+        self.heart_containers = []
         self.aliens = []
         self.alien_bullets = []
         self.bullets = []
@@ -50,19 +49,20 @@ class InGameState(State):
             starting_pos_y=self.game_engine.constants.get("HEIGHT") / 2 - 40, rotation=180)
 
     def init(self) -> None:
-
         alien_object = SpaceShip.Alien(
             asset=self.game_engine.assets.get("alien"),
             ship_height=60,
             ship_width=50, starting_pos_x=self.game_engine.constants.get("WIDTH") / 2 - 50,
-            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=180)
+            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=0)
         alien_object2 = SpaceShip.Alien(
             asset=self.game_engine.assets.get("alien"),
             ship_height=60,
             ship_width=50, starting_pos_x=self.game_engine.constants.get("WIDTH") / 2 + 50,
-            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=180)
+            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=0)
         self.aliens.append(alien_object)
         self.aliens.append(alien_object2)
+        # add three heart assets to a list
+        self.heart_containers += 3 * [pygame.transform.scale(self.game_engine.assets.get("heart"), (36, 36))]
 
     def handle_input(self) -> None:
         keys_pressed = pygame.key.get_pressed()
@@ -71,6 +71,17 @@ class InGameState(State):
     def draw(self) -> None:
         self.draw_background(self.game_engine)
         self.spaceship.draw_ship()
+        score_text_surface = self.game_engine.font.render('Score: ' + str(self.score), False, (255, 255, 255))
+        self.game_engine.WIN.blit(score_text_surface, (
+            self.game_engine.constants.get("WIDTH") - score_text_surface.get_width() - 15,
+            self.game_engine.constants.get("HEIGHT") - score_text_surface.get_height()))
+
+        for i in range(len(self.heart_containers)):
+            self.game_engine.WIN.blit(self.heart_containers[i],
+                                      (
+                                          0 + i * 30 + 15,
+                                          self.game_engine.constants.get("HEIGHT") - self.heart_containers[
+                                              i].get_height()))
         for bullet in self.bullets:
             bullet.draw_bullet()
         for alien_bullet in self.alien_bullets:
@@ -103,13 +114,19 @@ class InGameState(State):
                     self.aliens.remove(alien)
         if event.type == self.SPACESHIP_HIT:
             self.spaceship.health -= 1
+            self.heart_containers[self.spaceship.health] = pygame.transform.scale(
+                self.game_engine.assets.get("empty_heart"), (36, 36))
+            if self.spaceship.health == 0:
+                pygame.event.post(pygame.event.Event(self.game_engine.state_events.get(
+                    "GAME_OVER")))  # this event is registered in the main loop of GameEngine
+                return
 
     def update(self) -> None:
         self.handle_bullets()
         self.handle_alien_bullets()
         # handle_alien_bullets()
         for alien in self.aliens:
-            if random.randrange(0, 100) < 1 and alien.can_shoot:
+            if random.randrange(0, 100) < 1 and not alien.destroyed:
                 bullet_object = Bullet.Bullet(self.game_engine.assets.get("bullet"), alien)
                 bullet_object.shoot_sound()
                 self.alien_bullets.append(bullet_object)
@@ -118,8 +135,10 @@ class InGameState(State):
         for bullet in self.bullets:
             bullet.rectangle.y -= self.game_engine.constants.get("BULLET_VEL")
             for alien in self.aliens:
-                if alien.rectangle.colliderect(bullet.rectangle):
-                    alien.can_shoot = False
+                if alien.rectangle.colliderect(bullet.rectangle) and not alien.destroyed:
+                    if not alien.destroyed:
+                        self.score += 1 + self.score
+                    alien.destroyed = True
                     self.bullets.remove(bullet)
                     pygame.event.post(pygame.event.Event(self.ALIEN_HIT))
                     self.destroyed_aliens.append(alien)
@@ -140,4 +159,4 @@ class InGameState(State):
 
 # TODO
 class GameOver(State):
-    pass
+    print("game over")
