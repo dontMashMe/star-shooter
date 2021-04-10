@@ -49,18 +49,7 @@ class InGameState(State):
             starting_pos_y=self.game_engine.constants.get("HEIGHT") / 2 - 40, rotation=180)
 
     def init(self) -> None:
-        alien_object = SpaceShip.Alien(
-            asset=self.game_engine.assets.get("alien"),
-            ship_height=60,
-            ship_width=50, starting_pos_x=self.game_engine.constants.get("WIDTH") / 2 - 50,
-            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=0)
-        alien_object2 = SpaceShip.Alien(
-            asset=self.game_engine.assets.get("alien"),
-            ship_height=60,
-            ship_width=50, starting_pos_x=self.game_engine.constants.get("WIDTH") / 2 + 50,
-            starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=0)
-        self.aliens.append(alien_object)
-        self.aliens.append(alien_object2)
+        self.spawn_aliens(4)
         # add three heart assets to a list
         self.heart_containers += 3 * [pygame.transform.scale(self.game_engine.assets.get("heart"), (36, 36))]
 
@@ -78,10 +67,9 @@ class InGameState(State):
 
         for i in range(len(self.heart_containers)):
             self.game_engine.WIN.blit(self.heart_containers[i],
-                                      (
-                                          0 + i * 30 + 15,
-                                          self.game_engine.constants.get("HEIGHT") - self.heart_containers[
-                                              i].get_height()))
+                                      (0 + i * 30 + 15,
+                                       self.game_engine.constants.get("HEIGHT") - self.heart_containers[
+                                           i].get_height()))
         for bullet in self.bullets:
             bullet.draw_bullet()
         for alien_bullet in self.alien_bullets:
@@ -130,6 +118,8 @@ class InGameState(State):
                 bullet_object = Bullet.Bullet(self.game_engine.assets.get("bullet"), alien)
                 bullet_object.shoot_sound()
                 self.alien_bullets.append(bullet_object)
+        if len(self.aliens) == 0:
+            self.spawn_aliens(5)
 
     def handle_bullets(self):
         for bullet in self.bullets:
@@ -155,6 +145,23 @@ class InGameState(State):
                 pygame.event.post(pygame.event.Event(self.SPACESHIP_HIT))
             if bullet.rectangle.y - bullet.rectangle.y > 0:
                 self.alien_bullets.remove(bullet)
+
+    # to be called when all aliens are destroyed
+    def spawn_aliens(self, number_of_aliens):
+        last_pos = 0
+        flip = random.randint(0, 1)
+        for x in range(number_of_aliens):
+            alien_object = SpaceShip.Alien(
+                asset=self.game_engine.assets.get("alien"),
+                ship_height=60,
+                ship_width=50, starting_pos_x=self.game_engine.constants.get("WIDTH") / 1.5 - last_pos,
+                starting_pos_y=self.game_engine.constants.get("HEIGHT") - 500, rotation=0)
+            last_pos += 80
+            if flip == 1:
+                alien_object.direction = 1
+            else:
+                alien_object.direction = -1
+            self.aliens.append(alien_object)
 
 
 # TODO

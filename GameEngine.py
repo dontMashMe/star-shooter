@@ -33,7 +33,7 @@ class GameEngine:
             "GAME_OVER": pygame.USEREVENT + 4,
         }
 
-        self.font = pygame.font.SysFont('couriernew', 30)
+        self.font = pygame.font.SysFont('malgungothicsemilight', 30, bold=True)
 
         self.bg_y = 0
         self.bg_y2 = self.assets.get("background").get_height()
